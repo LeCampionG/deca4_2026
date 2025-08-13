@@ -91,7 +91,6 @@ Bloc 5 - Ouverture vers les autres méthodes de la statistique spatiale (1 séan
 
 ## Présentation des données utilisé dans le cadre de l'atelier
 
-## Données de la formation iFoss
 
 | Nom | Résumé | Source | Notes |
 |--- |--- |--- |--- |
@@ -138,7 +137,6 @@ Ils sont soumis à des règles communes, homogènes et comparables à celles de 
 (source INSEE)
 
 
-
 ## Calendrier et créneaux horaire (prévisionnel)
 
 12 séances de 1h30 en salle A 126 :
@@ -159,13 +157,12 @@ Ils sont soumis à des règles communes, homogènes et comparables à celles de 
 
 Le module propose une évaluation reposant sur la remise de rendus intermédiaires et la production d'un rendu final.
 
-| Évaluation                                                              | Poids | Description                                                                 |
+| Évaluation                                                              | Poids | Description                                        |
 |---------------------------|-----------------|-----------------------------|
-| Modifications de titres/sous-titres                                     | 10%   | Capacité à choisir des éléments éditoriaux clairs et pertinents             |
-| Identification de deux variables et calcul de statistiques descriptives | 10%   | Rigueur dans le choix des variables et la qualité du traitement             |
-| Prototype de visualisation univariée                                    | 10%   | Pertinence du graphique et lisibilité                                       |
-| Prototype de visualisation bivariée                                     | 10%   | Pertinence du graphique et lisibilité                                       |
-| Figure finale                                                           | 60%   | Une visualisation aboutie, respectant tous les critères de qualité attendus |
+| Code efficient                                     | 3pts   | Un code qui se déroule sans erreur |
+| Analyses des statistiques | 10pts   | Analyse cohérentes de toutes les sorties stat des méthodes présentées             |
+| Figures                                    | 3pts   | Production des visuels pertinents avec l'analyse de données |
+| Out of the box                                     | 4pts   | Proposition d'analyse plus fine que la simple sortie stat réalisé ou usages d'autres méthodes de la stat spatiale                                       |
 
 
 
