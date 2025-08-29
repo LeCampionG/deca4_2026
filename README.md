@@ -14,7 +14,7 @@ Aucun prérequis technique n’est nécessaire (ni en statistiques, ni en R, les
 
 ![LISA](https://github.com/LeCampionG/deca4_2026/blob/main/images/exemple1.png?raw=true)
 
-![collection](images/example2.png)
+![collection](https://github.com/LeCampionG/deca4_2026/blob/main/images/exemple2.png?raw=true)
 
 ![nb](images/example3.png)
 
