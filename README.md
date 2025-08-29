@@ -12,7 +12,7 @@ Aucun prérequis technique n’est nécessaire (ni en statistiques, ni en R, les
 
 ## Exemple d’illustrations qui pourront être réalisées
 
-![LISA](images/example1.png)
+![LISA](https://github.com/LeCampionG/deca4_2026/blob/main/images/exemple1.png?raw=true)
 
 ![collection](images/example2.png)
 
