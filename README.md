@@ -16,7 +16,7 @@ Aucun prérequis technique n’est nécessaire (ni en statistiques, ni en R, les
 
 ![collection](https://github.com/LeCampionG/deca4_2026/blob/main/images/exemple2.png?raw=true)
 
-![nb](images/example3.png)
+![nb](https://github.com/LeCampionG/deca4_2026/blob/main/images/exemple3.png?raw=true)
 
 
 ## Objectifs et organisation de l’atelier
