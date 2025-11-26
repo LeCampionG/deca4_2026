@@ -141,7 +141,7 @@ Ils sont soumis à des règles communes, homogènes et comparables à celles de 
 
 12 séances de 1h30 en salle A 126 :
 - jeu. 08/01/2026 09h45
-- jeu. 15/01/2026 09h45
+- mercredi 21 janvier 2026 à 15h45 en salle A.126 (remplace jeu. 15/01/2026 09h45)
 - jeu. 22/01/2026 09h45
 - jeu. 29/01/2026 09h45
 - jeu. 05/02/2026 09h45
