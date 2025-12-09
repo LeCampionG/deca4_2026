@@ -8,7 +8,7 @@ Cette réflexion sera également l’occasion d’une introduction à la cartogr
 
 ## Contenu et validation :
 
-Aucun prérequis technique n’est nécessaire (ni en statistiques, ni en R, les ). L’atelier est pensé pour un public qui souhaite mieux comprendre les enjeux géographiques et du spatial dans l’analyse de données. Pour ce faire nous utiliserons un exemple concret visant à expliquer le prix de l’immobilier par EPCI en France Hexagonale. La validation passera par la remise d’un dossier reprenant le processus d’analyse de statistique spatiale tel qu’il aura été présenté, analyse qui se basera sur des données qui auront été fournies.
+Aucun prérequis technique n’est nécessaire (ni en statistiques, ni en R). L’atelier est pensé pour un public qui souhaite mieux comprendre les enjeux géographiques et du spatial dans l’analyse de données. Pour ce faire nous utiliserons un exemple concret visant à expliquer le prix de l’immobilier par EPCI en France Hexagonale. La validation passera par la remise d’un dossier reprenant le processus d’analyse de statistique spatiale tel qu’il aura été présenté, analyse qui se basera sur des données qui auront été fournies.
 
 ## Exemple d’illustrations qui pourront être réalisées
 
