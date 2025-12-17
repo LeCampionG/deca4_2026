@@ -59,6 +59,8 @@ Bloc 1 – Mise en place & premiers pas (2 séances)
 - Installation des environnements de développement et prise en main
 - Exécution des premières lignes de codes à partir d'un exemple fourni par l'enseignant
 
+Ressources : [Présentation réalisé par Hugues Pecout (UMR Géographie Cité) sur R](https://introduction-59e2f5.gitpages.huma-num.fr/#/title-slide)
+
 Bloc 2 – Pourquoi la statistique spatiale  (2 séances)  
 *Objectif : comprendre l'intéret d'utiliser la statistique spatiale*
 
@@ -166,10 +168,12 @@ Le module propose une évaluation reposant sur la remise de rendus intermédiair
 
 
 
-### Bibliographie
+### Bibliographie / Ressources
 
 <!-- TODO : COMPLÉTER LA BIBLIO -->
-- <>
+- Hugues Pecout (CNRS, UMR Géographie-Cités), 2024. Introduction à R. Formation Interne - Transversalité "Données et protocoles dans les Humanités Numériques". [Consultable ici](https://gitlab.huma-num.fr/geographie-cites/formation/inititation-r/introduction/-/tree/master?ref_type=heads)
+- 
+
 
 ## À propos de l’enseignant-e
 <!-- TODO :  -->
