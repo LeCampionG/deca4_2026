@@ -198,19 +198,31 @@ mf_map(x = epci_sf)
 
 ------------------------------------------------------------------------
 
-## I. Rappels : La Régression Linéaire {.center}
+## Rappels : La Régression Linéaire {.center}
+
+![](images/affine.png){fig-align="center" width="50%" style="margin-top:10px; margin-bottom:0px"}
 
 ------------------------------------------------------------------------
 
 ## Qu'est-ce que la régression linéaire ?
 
-La régression linéaire cherche à expliquer ou prédire une variable Y par une ou plusieurs variables X :
+**La régression linéaire cherche à expliquer ou prédire une variable Y par une ou plusieurs variables X.**
+
+::: {style="font-size: 0.75em;margin-top:10px;"}
+
+Elle peut être simple :
+
+$$Y = a + bX + \epsilon$$
+
+Ou multiple :
 
 $$Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + ... + \beta_n X_n + \epsilon$$
 
 -   $\beta_0$ : ordonnée à l'origine
 -   $\beta_i$ : coefficients de régression
 -   $\epsilon$ : terme d'erreur
+
+:::
 
 ::: notes
 Rappel rapide : Y est la variable qu'on cherche à expliquer, les X sont les variables explicatives, les β quantifient l'effet de chaque X sur Y, et ε représente tout ce qui n'est pas expliqué par le modèle. Tout ce cours va montrer les limites de cette équation quand on a des données spatiales.
@@ -245,9 +257,52 @@ Prix d'un bien immobilier :
 L'exemple immobilier est excellent car vous le comprenez tous intuitivement. Je vais y revenir tout au long du cours pour montrer les limites de la régression classique. Remarquez que la "localisation (code postal)" est traitée ici comme une simple variable catégorielle. Est-ce que cette façon de traiter la localisation vous semble suffisante ? La dimension spatiale est plus complexe qu'une simple variable. Pour l'instant, je fais comme si toutes les observations étaient indépendantes les unes des autres. Est-ce vraiment le cas pour des biens immobiliers proches géographiquement ?
 :::
 
-------------------------------------------------------------------------
+---
 
 ## Visualisation du modèle
+
+![](images/regression.jpg){fig-align="center" width="50%" style="margin-top:10px; margin-bottom:0px"}
+
+::: aside 
+*Figure issue de Feuillet, T., Cossart, É. et Commenges, H. (2019). Chapitre 7. La régression linéaire. Manuel de géographie quantitative : Concepts, outils, méthodes (p. 158-179). Armand Colin.*
+:::
+
+------------------------------------------------------------------------
+
+## Visualisation du modèle 2
+
+![](images/regression2.jpg){fig-align="center" width="60%" style="margin-top:10px; margin-bottom:0px"}
+
+::: aside 
+*Figure issue de Feuillet, T., Cossart, É. et Commenges, H. (2019). Chapitre 7. La régression linéaire. Manuel de géographie quantitative : Concepts, outils, méthodes (p. 158-179). Armand Colin.*
+:::
+
+## Interpréter les coefficients
+
+**Exemple** : Y = 2 000 + 500 × X
+
+-   **a = 2 000** : salaire de base (avec 0 année d'expérience)
+-   **b = 500** : chaque année d'expérience augmente le salaire de 2 000 €
+
+::: fragment
+**Prédiction** : Une personne avec 5 ans d'expérience :
+
+Y = 2 000 + 500 × 5 = **4 500 €**
+:::
+
+::: notes
+-   DIAPO IMPORTANTE pour comprendre la lecture de la régression
+-   Coefficients a et b sont calculés par le logiciel, nous devons les INTERPRÉTER
+-   a (intercept, ordonnée à l'origine) : valeur de Y quand X = 0
+    -   Ici : quelqu'un sans expérience gagne 25 000€
+    -   Attention : si X=0 n'a pas de sens dans le contexte, a n'a qu'une valeur technique
+-   b (pente, coefficient) : effet de X sur Y
+    -   Ici : chaque année supplémentaire ajoute 2 000€ au salaire
+:::
+
+---
+
+## Visualisation du modèle de l'exemple
 
 ```{r}
 #| echo: false
@@ -263,33 +318,8 @@ plot(x, y, pch = 19, col = "steelblue",
      xlab = "Années d'expérience", 
      ylab = "Salaire (milliers €)")
 abline(lm(y ~ x), col = "red", lwd = 2)
-text(2, 20, "Y = 3 + 2X", col = "red", cex = 1.2)
+text(2, 20, "Y = 2000 + 500X", col = "red", cex = 1.2)
 ```
-
-------------------------------------------------------------------------
-
-## Interpréter les coefficients
-
-**Exemple** : Y = 25 000 + 2 000 × X
-
--   **a = 25 000** : salaire de base (avec 0 année d'expérience)
--   **b = 2 000** : chaque année d'expérience augmente le salaire de 2 000 €
-
-::: fragment
-**Prédiction** : Une personne avec 5 ans d'expérience :
-
-Y = 25 000 + 2 000 × 5 = **35 000 €**
-:::
-
-::: notes
--   DIAPO IMPORTANTE pour comprendre la lecture de la régression
--   Coefficients a et b sont calculés par le logiciel, nous devons les INTERPRÉTER
--   a (intercept, ordonnée à l'origine) : valeur de Y quand X = 0
-    -   Ici : quelqu'un sans expérience gagne 25 000€
-    -   Attention : si X=0 n'a pas de sens dans le contexte, a n'a qu'une valeur technique
--   b (pente, coefficient) : effet de X sur Y
-    -   Ici : chaque année supplémentaire ajoute 2 000€ au salaire
-:::
 
 ------------------------------------------------------------------------
 
@@ -333,7 +363,11 @@ En SHS, un R² de 0,3-0,5 n'est pas rare.
 
 ------------------------------------------------------------------------
 
-## Pratique avec R
+## Mise en pratique avec R {.center}
+
+---
+
+## Représentater le modèle avec R
 
 ::: {style="font-size: 0.6em;margin-top:20px;"}
 Essayons tout d'abord de représenter un modèle !
@@ -361,7 +395,7 @@ plot1 + geom_point(col="blue") + geom_smooth(method = "lm", color="red", se=TRUE
 
 ------------------------------------------------------------------------
 
-## Pratique avec R 2
+## Représentater le modèle avec R 2
 
 ::: {style="font-size: 0.6em;margin-top:20px;"}
 Une autre manière de faire qui peut s'avérer pratique...
@@ -380,7 +414,7 @@ car::scatterplot(prix_med ~ med_niveau_vis, data = immo_df, id = list(n=10))
 
 ```
 
-## Pratique avec R 3
+## Créer le modèle statistique
 
 ::: {style="font-size: 0.6em;margin-top:20px;"}
 Produire un modèle de régression rien de plus simple !
@@ -406,7 +440,7 @@ La t−value est le coefficient divisé par son erreur standard. Plus ce quotien
 
 ------------------------------------------------------------------------
 
-## Pratique avec R 4
+## Premiers résultats
 
 ::: {style="font-size: 0.75em;margin-top:20px;"}
 La fonction summary() présente les estimations de façon brute, mais d’autres fonctions permettent des rendus plus esthétiques, comme avec le package gtsummary :
@@ -424,6 +458,12 @@ gtsummary::tbl_regression(lm1)
 
 
 ```
+
+---
+
+## Condition de réalisation d'une régression {.center}
+
+---
 
 ## Les hypothèses de la régression classique
 
@@ -446,7 +486,7 @@ L'**indépendance** : c'est la 1ère hypothèse qui sera violée avec les donné
 
 En géographie, cette hypothèse est souvent **violée** :
 
--   Les phénomènes spatiaux sont rarement indépendants
+-   Les phénomènes spatiaux sont rarement indépendants : **on parle de la dépendance spatiale : autocorrélation des résidus.**
 -   "Tout est lié à tout, mais les choses proches sont plus liées que les choses éloignées" (Tobler, 1970)
 
 ::: notes
@@ -465,7 +505,7 @@ La régression classique suppose des **coefficients constants** dans l'espace :
 
 -   L'effet d'une variable est le même partout
 -   Pas de prise en compte des variations locales
--   Inadapté pour des phénomènes géographiques hétérogènes
+-   Inadapté pour des phénomènes géographiques hétérogènes et plus largement en SHS
 
 ::: notes
 Imaginons qu'on étudie l'effet du niveau d'éducation sur le salaire. Est-ce que cet effet est le même à Paris qu'en zone rurale ? Probablement pas : à Paris où la concurrence est forte et les emplois qualifiés nombreux, l'éducation a peut-être un effet plus important.
@@ -477,9 +517,11 @@ La régression classique donne UN SEUL coefficient par variable pour toute la zo
 
 ------------------------------------------------------------------------
 
-## Diagnostiquer la régression avec R
+## Diagnostiquer la régression avec R {.center}
 
-### On complexifie notre modèle
+---
+
+## On complexifie notre modèle
 
 ::: callout-warning
 ## Attention
@@ -710,3 +752,4 @@ qqPlot(mod.lm2)
 #| warning: false
 car::compareCoefs(mod.lm, mod.lm2, pvals = TRUE)
 ```
+
