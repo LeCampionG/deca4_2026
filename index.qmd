@@ -209,7 +209,6 @@ mf_map(x = epci_sf)
 **La régression linéaire cherche à expliquer ou prédire une variable Y par une ou plusieurs variables X.**
 
 ::: {style="font-size: 0.75em;margin-top:10px;"}
-
 Elle peut être simple :
 
 $$Y = a + bX + \epsilon$$
@@ -221,7 +220,6 @@ $$Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + ... + \beta_n X_n + \epsilon$$
 -   $\beta_0$ : ordonnée à l'origine
 -   $\beta_i$ : coefficients de régression
 -   $\epsilon$ : terme d'erreur
-
 :::
 
 ::: notes
@@ -257,13 +255,13 @@ Prix d'un bien immobilier :
 L'exemple immobilier est excellent car vous le comprenez tous intuitivement. Je vais y revenir tout au long du cours pour montrer les limites de la régression classique. Remarquez que la "localisation (code postal)" est traitée ici comme une simple variable catégorielle. Est-ce que cette façon de traiter la localisation vous semble suffisante ? La dimension spatiale est plus complexe qu'une simple variable. Pour l'instant, je fais comme si toutes les observations étaient indépendantes les unes des autres. Est-ce vraiment le cas pour des biens immobiliers proches géographiquement ?
 :::
 
----
+------------------------------------------------------------------------
 
 ## Visualisation du modèle
 
 ![](images/regression.jpg){fig-align="center" width="50%" style="margin-top:10px; margin-bottom:0px"}
 
-::: aside 
+::: aside
 *Figure issue de Feuillet, T., Cossart, É. et Commenges, H. (2019). Chapitre 7. La régression linéaire. Manuel de géographie quantitative : Concepts, outils, méthodes (p. 158-179). Armand Colin.*
 :::
 
@@ -273,7 +271,7 @@ L'exemple immobilier est excellent car vous le comprenez tous intuitivement. Je 
 
 ![](images/regression2.jpg){fig-align="center" width="60%" style="margin-top:10px; margin-bottom:0px"}
 
-::: aside 
+::: aside
 *Figure issue de Feuillet, T., Cossart, É. et Commenges, H. (2019). Chapitre 7. La régression linéaire. Manuel de géographie quantitative : Concepts, outils, méthodes (p. 158-179). Armand Colin.*
 :::
 
@@ -300,7 +298,7 @@ Y = 2 000 + 500 × 5 = **4 500 €**
     -   Ici : chaque année supplémentaire ajoute 2 000€ au salaire
 :::
 
----
+------------------------------------------------------------------------
 
 ## Visualisation du modèle de l'exemple
 
@@ -365,7 +363,7 @@ En SHS, un R² de 0,3-0,5 n'est pas rare.
 
 ## Mise en pratique avec R {.center}
 
----
+------------------------------------------------------------------------
 
 ## Représentater le modèle avec R
 
@@ -459,11 +457,11 @@ gtsummary::tbl_regression(lm1)
 
 ```
 
----
+------------------------------------------------------------------------
 
 ## Condition de réalisation d'une régression {.center}
 
----
+------------------------------------------------------------------------
 
 ## Les hypothèses de la régression classique
 
@@ -519,7 +517,7 @@ La régression classique donne UN SEUL coefficient par variable pour toute la zo
 
 ## Diagnostiquer la régression avec R {.center}
 
----
+------------------------------------------------------------------------
 
 ## On complexifie notre modèle
 
@@ -753,3 +751,682 @@ qqPlot(mod.lm2)
 car::compareCoefs(mod.lm, mod.lm2, pvals = TRUE)
 ```
 
+------------------------------------------------------------------------
+
+## Introduction à la Statistique Spatiale {.center}
+
+------------------------------------------------------------------------
+
+## Pourquoi la statistique spatiale ?
+
+Les données spatiales ont des **propriétés particulières** :
+
+-   **Position** : les observations ont une localisation
+-   **Dépendance spatiale** : proximité = similitude
+-   **Hétérogénéité spatiale** : les processus varient dans l'espace
+
+::: notes
+**Position** : Ce n'est pas qu'une variable de plus ! La position dans l'espace structure les phénomènes. Un commerce n'a pas le même potentiel selon où il se trouve, même avec les mêmes caractéristiques.
+
+**Dépendance spatiale** : C'est le problème d'autocorrélation vu précédemment.
+
+**Hétérogénéité spatiale** : Les relations varient d'un endroit à l'autre, c'est le problème de non-stationnarité.
+
+Ce ne sont pas des "bugs" de nos données, ce sont des caractéristiques intrinsèques qu'il faut prendre en compte. La statistique spatiale n'est pas une discipline totalement différente, c'est une extension de la statistique classique.
+:::
+
+------------------------------------------------------------------------
+
+## Les deux problèmes fondamentaux
+
+::::: columns
+::: {.column width="50%"}
+### 1. Autocorrélation spatiale
+
+Les observations voisines se ressemblent
+
+**Conséquence** : violation de l'hypothèse d'indépendance
+:::
+
+::: {.column width="50%"}
+### 2. Non-stationnarité spatiale
+
+Les relations varient dans l'espace
+
+**Conséquence** : coefficients non constants
+:::
+:::::
+
+::: notes
+**Autocorrélation** : Si je connais la valeur à un endroit, je peux deviner qu'elle sera similaire tout près. C'est une violation de l'indépendance car les observations "s'influencent" mutuellement. Exemple : si je sais qu'un quartier est riche, je peux parier que le quartier d'à côté l'est aussi.
+
+**Non-stationnarité** : La même cause n'a pas le même effet partout. C'est un problème car j'estime un seul coefficient alors qu'il devrait varier. Exemple : l'effet de l'éducation sur le revenu peut être plus fort dans les métropoles que dans les zones rurales.
+
+**Mise en garde** : Ces deux problèmes sont différents et nécessitent des solutions différentes. Je peux avoir l'un sans l'autre, ou les deux simultanément.
+:::
+
+------------------------------------------------------------------------
+
+## Comment la statistique spatiale répond
+
+**Pour l'autocorrélation** :
+
+-   Mesurer et tester l'autocorrélation spatiale
+-   Modèles spatiaux (SAR, SEM, etc.)
+
+**Pour la non-stationnarité** :
+
+-   Régressions géographiquement pondérées (GWR)
+-   Modèles locaux
+
+::: notes
+Il faut d'abord DIAGNOSTIQUER (mesurer) avant de TRAITER. Les modèles SAR (Spatial AutoRegressive) et SEM (Spatial Error Model) sont des extensions de la régression qui intègrent explicitement la dépendance spatiale. Dans ce cours d'initiation, je me concentrerai surtout sur la mesure (I de Moran, LISA).
+
+La GWR sera le cœur de la deuxième partie du cours. "Géographiquement pondérées" signifie que les coefficients varient selon la position géographique. Au lieu d'un modèle global, je fais des modèles locaux.
+
+**Mise en garde** : Ces solutions ne sont pas exclusives. Je peux avoir besoin de traiter les deux problèmes simultanément (d'où les modèles GWRSAR).
+:::
+
+------------------------------------------------------------------------
+
+## Préparation des données en vue de la stat spatiale ! {.center}
+
+------------------------------------------------------------------------
+
+## La jointure
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+# l'option all.x = TRUE permet de garder toutes les lignes de epci_sf,
+# même celles qui n'ont pas de correspondance dans immo_df
+data_immo <- merge(x = epci_sf, y = immo_df, by.x = "CODE_SIREN", by.y = "SIREN", all.x = TRUE)
+
+
+nrow(immo_df)
+
+nrow(epci_sf)
+
+nrow(data_immo)
+
+
+```
+
+------------------------------------------------------------------------
+
+## Représenter
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+mf_map(x = data_immo)
+mf_map(x = data_immo[is.na(data_immo$prix_med),], col = 'red', add = TRUE)
+
+
+```
+
+------------------------------------------------------------------------
+
+## La nouvelle jointure
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+data_immo <- merge(x = epci_sf, y = immo_df, by.x = "CODE_SIREN", by.y = "SIREN")
+nrow(data_immo)
+
+
+mf_map(x = data_immo)
+
+# Pour exporter 
+
+# st_write(data_immo, "data_immo.gpkg", driver = "GPKG")
+
+```
+
+---
+
+## La carte du prix de l'immobilier
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+#| 
+
+# La palette de couleurs :
+cols_v1 <- c("#08519c", "#3182bd", "#6baed6", "#9ecae1", "#c6dbef", "#eff3ff", "#ffffce", "#fee5d9", "#fcbba1", "#fc9272",  "#fb6a4a", "#de2d26")
+
+# Carte du prix médian 
+mf_map(x = data_immo, 
+       var = "prix_med", 
+       type = "choro", 
+       border = "#ebebeb", 
+       lwd = 0.1, 
+       breaks=quantile(data_immo$prix_med,seq(0,1, by=1/11)), 
+       pal=cols_v1, 
+       leg_title = "Prix médian", 
+       leg_val_rnd = 1)
+mf_title("Prix Médian du logement par EPCI France Métropolitaine") #titre
+
+```
+
+---
+
+## La carte des résidus... ou montrer la structure spatiale
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+data_immo$res_reg <- mod.lm$residuals
+
+# Définition d'une palette de couleur
+cols_v1 <- c("#08519c", "#3182bd", "#6baed6", "#9ecae1", "#c6dbef", "#eff3ff", "#ffffce", "#fee5d9", "#fcbba1", "#fc9272",  "#fb6a4a", "#de2d26")
+
+# Réalisation de la carte
+mf_map(x = data_immo, 
+       var = "res_reg", 
+       type = "choro", 
+       border = "#ebebeb", 
+       lwd = 0.1, 
+       breaks=quantile(data_immo$res_reg,seq(0,1, by=1/11)), 
+       pal=cols_v1, 
+       leg_title = "Résidus de régression\nlinéaire 'classique'", 
+       leg_val_rnd = 1)
+mf_title("Résidus modèle lm") #titre
+
+```
+
+
+
+------------------------------------------------------------------------
+
+## L'Autocorrélation Spatiale {.center}
+
+------------------------------------------------------------------------
+
+## Définition
+
+L'autocorrélation spatiale mesure la **similitude** entre observations voisines :
+
+-   **Positive** : les valeurs similaires sont proches
+-   **Négative** : les valeurs dissimilaires sont proches
+-   **Nulle** : distribution aléatoire dans l'espace
+
+------------------------------------------------------------------------
+
+## Représentation
+
+![](images/NotionAutocorrSpatiale.png){width="35%" fig-align="center"}
+
+::: aside
+*Figure tirée de Apparicio P. et J. Gelb (2024). Méthodes d’analyse spatiales : un grand bol d’R. Université de Sherbrooke, Département de géomatique appliquée. fabriqueREL. Licence CC BY-SA*
+:::
+
+::: notes
+**Autocorrélation positive** (le cas le plus fréquent) : Les prix immobiliers élevés sont regroupés dans certains quartiers, les prix faibles dans d'autres. Visuellement, je vois des "taches" sur une carte. C'est la traduction statistique de la loi de Tobler.
+
+**Autocorrélation négative** (plus rare) : Les valeurs opposées sont côte à côte, comme un damier. Exemple théorique : alternance de zones riches et pauvres. En pratique, assez rare dans les phénomènes sociaux ou économiques.
+
+**Absence d'autocorrélation** : La position n'a pas d'importance. C'est comme si j'avais mélangé au hasard les valeurs sur la carte. C'est l'hypothèse de la régression classique.
+
+**Mise en garde** : L'autocorrélation n'est pas "bien" ou "mal", c'est une caractéristique des données qu'il faut identifier et prendre en compte.
+:::
+
+------------------------------------------------------------------------
+
+## La matrice de poids spatiaux (1/2)
+
+Pour mesurer l'autocorrélation, il faut définir le **voisinage** :
+
+**Matrice W** : qui est voisin de qui ?
+
+-   $w_{ij} = 1$ si i et j sont voisins
+-   $w_{ij} = 0$ sinon
+
+::: notes
+**Analogie** : Imaginez que je crée un réseau social géographique. La matrice W dit qui est "ami" avec qui basé sur la proximité géographique. Si deux communes sont voisines, W = 1 (elles sont "amies"). Sinon W = 0.
+
+Pour calculer l'autocorrélation, je dois comparer chaque observation avec ses voisins. Mais qui sont ses voisins ? C'est ce que définit la matrice W. C'est une matrice n×n où n est le nombre d'observations.
+
+**Mise en garde** : Il n'y a pas UNE SEULE façon de définir le voisinage. C'est un choix méthodologique. En pratique avec R, des fonctions calculent automatiquement cette matrice, vous n'aurez pas à la construire à la main.
+:::
+
+------------------------------------------------------------------------
+
+## La matrice de poids spatiaux (2/2)
+
+### Différentes définitions du voisinage
+
+![](images/voisin.png){width="35%" fig-align="center"}
+
+::: aside
+*Figure issue de Feuillet, T., Cossart, É. et Commenges, H. (2019). Manuel de géographie quantitative : Concepts, outils, méthodes. Armand Colin.*
+:::
+
+::: notes
+**Contiguïté Reine** : Analogie avec les échecs - la reine peut bouger en diagonale. Deux communes sont voisines si elles partagent un côté OU un coin. Pour une commune au centre d'une grille, la reine donne 8 voisins.
+
+**Contiguïté Tour** : La tour ne bouge que horizontalement/verticalement. Deux communes sont voisines uniquement si elles partagent un côté. Pour une commune au centre, la tour donne seulement 4 voisins.
+
+**Distance** : Je fixe un seuil (ex: 50 km). Toutes les communes à moins de 50 km sont voisines. **Mise en garde** : Certains points peuvent n'avoir aucun voisin si je choisis mal le seuil.
+
+**k plus proches voisins** : Chaque observation a exactement k voisins (les k plus proches). Exemple : k=5 signifie que chaque commune a ses 5 communes les plus proches comme voisines.
+
+Pour débuter, la contiguïté reine est souvent un bon choix pour des données communales/régionales.
+:::
+
+------------------------------------------------------------------------
+
+## Voisinage avec R
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+#| 
+library(spdep)
+# Création de la liste des voisins : avec l'option queen = TRUE, 
+# sont considérés comme voisins 2 polygones possédant au moins 1 sommet commun
+#help(poly2nb)
+neighbours_epci <- poly2nb(data_immo, queen = TRUE) 
+
+# cette opération se fait aussi avec un objet sp 
+#shape_nbq <- poly2nb(shape, queen = TRUE)
+
+# Obtention des coordonnées des centroïdes
+#coord<-coordinates(shape)
+coord <- st_coordinates(st_centroid(data_immo))
+
+# Faire un graphe de voisinage
+plot(neighbours_epci, coord)
+
+# si on prend le 1er élément de neighbours_epci, on voit qu'il a pour voisins les polygones 62, 74 etc.
+neighbours_epci[[1]]
+
+
+# ce qu'on peut vérifier sur la carte :
+neighbours1 <- data_immo[c(1,62,74,338,1135,1136,1137,1140),]
+neighbours1$index <- rownames(neighbours1)
+mf_map(x = neighbours1)
+mf_label(x = neighbours1, var = "index")
+
+
+```
+
+------------------------------------------------------------------------
+
+## Création de la matrice de voisinage
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+# la fonction nb2listw attribue des poids à chaque voisin
+# par ex. si un polygone a 4 voisins, ils auront chacun un poids de 1/4 = 0.25
+#help("nb2listw")
+neighbours_epci_w <- nb2listw(neighbours_epci)
+# les poids sont stockés dans le 3ème élément de neighbours_epci_w
+# par ex. si on veut connaître les poids des voisins du 1er élément :
+neighbours_epci_w[[3]][1]
+
+
+```
+
+::: callout-tip
+Comment faire si l’on a un polygone sans voisins ? Sur le plan technique, la fonction nb2listw prévoit ce cas de figure. Il faut utiliser l’argument zero.policy est indiquer TRUE. Au niveau théorique, c’est moins clair. De manière générale les indices d’autocorrélation spatiale et autres régressions spatiales ont été conçus en partant du principe que les entités spatiales avaient un voisinage. Ceci dit il n’y a pas à ma connaissance de règles qui obligent à les supprimer ou intégrer, ni de consensus scientifique sur l’approche à adopter.
+:::
+
+------------------------------------------------------------------------
+
+## L'indice de Moran (I de Moran)
+
+$$I = \frac{n}{\sum_{i}\sum_{j}w_{ij}} \times \frac{\sum_{i}\sum_{j}w_{ij}(x_i - \bar{x})(x_j - \bar{x})}{\sum_{i}(x_i - \bar{x})^2}$$
+
+-   **I \> 0** : autocorrélation positive
+-   **I ≈ 0** : pas d'autocorrélation
+-   **I \< 0** : autocorrélation négative
+
+::: notes
+L'objectif n'est pas que vous reteniez cette formule par cœur, mais que vous compreniez l'intuition. Le numérateur $(x_i - \bar{x})(x_j - \bar{x})$ mesure si i et j s'écartent de la moyenne dans le même sens. Si les deux sont au-dessus de la moyenne (ou les deux en-dessous), le produit est positif. Le $w_{ij}$ pondère selon le voisinage : je ne compare que les voisins.
+
+**Analogie** : C'est un peu comme un coefficient de corrélation entre une variable et elle-même décalée spatialement. D'où le terme "autocorrélation".
+
+L'indice de Moran compare la variabilité entre voisins à la variabilité globale. Si les voisins sont très similaires, I sera élevé. Théoriquement, I est entre -1 et +1 comme une corrélation. En pratique, I proche de 0 suggère une distribution aléatoire. Avec R, le calcul est automatique.
+:::
+
+------------------------------------------------------------------------
+
+## Interprétation de l'I de Moran
+
+**Test d'hypothèse** :
+
+-   H₀ : distribution spatiale aléatoire (I = 0)
+-   H₁ : autocorrélation spatiale
+
+**En pratique** :
+
+-   Calcul de l'indice I
+-   Test de significativité (permutations)
+-   p-value pour rejeter H₀
+
+::: notes
+Calculer l'indice I ne suffit pas, il faut tester s'il est significativement différent de 0. H₀ : il n'y a pas d'autocorrélation, la distribution est aléatoire. Si I est significativement différent de 0, je rejette H₀.
+
+Le test par permutations fonctionne ainsi : je calcule l'I observé sur mes données réelles, puis je mélange aléatoirement les valeurs sur la carte (en gardant les positions fixes) pour créer une distribution aléatoire. Je calcule I sur cette distribution aléatoire, je répète 999 fois, puis je compare mon I observé aux 999 I aléatoires.
+
+**Interprétation de la p-value** : p \< 0.05 signifie autocorrélation significative, p \> 0.05 signifie que je ne peux pas rejeter l'hypothèse d'une distribution aléatoire.
+
+**Mise en garde** : Un I élevé mais non significatif ne permet pas de conclure. Je dois toujours rapporter à la fois la valeur de I et la p-value.
+:::
+
+------------------------------------------------------------------------
+
+## Visualisation : Diagramme de Moran
+
+![](images/moranplot.png){width="65%" fig-align="center"}
+
+Nuage de points : valeur vs. moyenne des voisins
+
+::: notes
+Le diagramme de Moran est un outil visuel très pédagogique. Axe horizontal : la valeur de l'observation (standardisée), axe vertical : la moyenne des valeurs des voisins (standardisée). Chaque point représente une observation.
+
+Si les points suivent la diagonale ascendante : autocorrélation positive (valeur élevée → voisins élevés). Si les points sont dispersés aléatoirement : pas d'autocorrélation. Si les points suivent une diagonale descendante : autocorrélation négative (rare).
+
+La pente de la droite de régression dans ce diagramme est directement liée à l'indice de Moran. **Limite** : C'est une vue globale. Il ne dit pas OÙ se trouvent les clusters. C'est là qu'interviennent les LISA.
+:::
+
+------------------------------------------------------------------------
+
+## Le prix de l'immobilier...
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+#| 
+
+# La palette de couleurs :
+cols_v1 <- c("#08519c", "#3182bd", "#6baed6", "#9ecae1", "#c6dbef", "#eff3ff", "#ffffce", "#fee5d9", "#fcbba1", "#fc9272",  "#fb6a4a", "#de2d26")
+
+# Carte du prix médian 
+mf_map(x = data_immo, 
+       var = "prix_med", 
+       type = "choro", 
+       border = "#ebebeb", 
+       lwd = 0.1, 
+       breaks=quantile(data_immo$prix_med,seq(0,1, by=1/11)), 
+       pal=cols_v1, 
+       leg_title = "Prix médian", 
+       leg_val_rnd = 1)
+mf_title("Prix Médian du logement par EPCI France Métropolitaine") #titre
+
+
+```
+
+------------------------------------------------------------------------
+
+## Moran avec R
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+#| 
+
+library(spdep)
+
+# Pour l'occasion on va standardiser notre prix médian. 
+# Cela permettra par la suite de le comparer à d'autres variables si d'autres analyses d'autocorrélation spatiale sont réalisées
+data_immo$prix_med_z <- (data_immo$prix_med-mean(data_immo$prix_med))/sd(data_immo$prix_med)
+
+
+# Test de Moran :
+
+# On indique dans un premier temps la variable que l'on souhaite analyser
+# Puis la matrice de voisinage
+# L'argument zero.policy=TRUE permet de préciser que l'on souhaite intégrer à l'analyse les entités spatiales qui n'auraient pas de voisins
+# L'argument randomisation=FALSE transmet à la fonction que nous supposons que la distribution est normale. Dans le cas contraire on devrait partir sur une solution de type Monte-Carlo qui repose sur la randomisation
+moran.test(data_immo$prix_med_z, neighbours_epci_w, zero.policy = TRUE, randomisation = FALSE)
+
+
+moran.plot(data_immo$prix_med_z,neighbours_epci_w, 
+           labels = TRUE, 
+           xlab="prix medians par epci", 
+           ylab="moyenne du prix médians par epci des voisins")
+
+
+```
+
+------------------------------------------------------------------------
+
+## Les Indicateurs LISA {.center}
+
+------------------------------------------------------------------------
+
+## Qu'est-ce que les LISA ?
+
+**LISA** : Local Indicators of Spatial Association
+
+-   Décomposition **locale** de l'I de Moran global
+-   Identifie les **clusters spatiaux** locaux
+-   Détecte les **valeurs atypiques** spatiales
+
+::: notes
+L'I de Moran donne UNE valeur pour toute la zone d'étude : "il y a de l'autocorrélation globalement". Les LISA donnent UNE valeur PAR observation : "cette commune contribue beaucoup/peu à l'autocorrélation".
+
+Imagine que l'I de Moran soit élevé. Cela ne me dit pas : où sont les zones de valeurs élevées groupées ? Où sont les zones de valeurs faibles groupées ? Y a-t-il des valeurs atypiques ? Les LISA répondent à ces questions.
+
+**Analogie** : C'est comme la différence entre dire "la France a une température moyenne de 15°C" (global) et faire une carte météo qui montre les températures locales (local).
+
+Applications : en urbanisme pour identifier des poches de pauvreté, en santé publique pour détecter des clusters de maladies, en environnement pour localiser des zones de pollution.
+:::
+
+------------------------------------------------------------------------
+
+## L'indice de Moran local
+
+Pour chaque observation i :
+
+$$I_i = \frac{(x_i - \bar{x})}{\sigma^2} \sum_{j} w_{ij}(x_j - \bar{x})$$
+
+Mesure la **contribution locale** à l'autocorrélation globale
+
+::: notes
+Cette formule est plus simple que celle de l'I de Moran global. $(x_i - \bar{x})$ : écart de i par rapport à la moyenne, $(x_j - \bar{x})$ : écart du voisin j par rapport à la moyenne, $w_{ij}$ : pondération du voisinage.
+
+Ii est élevé quand l'observation i s'écarte beaucoup de la moyenne ET ses voisins s'écartent aussi beaucoup dans le même sens. Ii \> 0 : i et ses voisins sont similaires. Ii \< 0 : i est différent de ses voisins (valeur atypique).
+
+La somme (pondérée) de tous les Ii donne l'I de Moran global. C'est en ce sens que les LISA "décomposent" l'indice global.
+
+**Mise en garde** : Comme pour l'I global, il faut tester la significativité de chaque Ii par permutations. R calcule automatiquement tous ces indices.
+:::
+
+------------------------------------------------------------------------
+
+## Types de clusters (1/2)
+
+::::: columns
+::: {.column width="50%"}
+### Hot spots (HH)
+
+Valeur élevée entourée de valeurs élevées
+
+### Cold spots (LL)
+
+Valeur faible entourée de valeurs faibles
+:::
+
+::: {.column width="50%"}
+### Outliers (HL)
+
+Valeur élevée entourée de valeurs faibles
+
+### Outliers (LH)
+
+Valeur faible entourée de valeurs élevées
+:::
+:::::
+
+::: notes
+**Hot spots (HH)** : Une valeur élevée entourée de valeurs élevées. Exemples : un quartier riche dans une zone riche, une zone très polluée entourée de zones polluées. C'est le type de cluster le plus fréquent en cas d'autocorrélation positive.
+
+**Cold spots (LL)** : Une valeur faible entourée de valeurs faibles. Exemples : un quartier pauvre dans une zone pauvre, une zone peu peuplée entourée de zones peu peuplées. Le "pendant" du hot spot.
+
+**Outliers HL** : Valeur élevée isolée dans un environnement de valeurs faibles. Exemples : une commune riche dans une région pauvre, un commerce prospère dans une zone déprimée. Intéressant à étudier : pourquoi cette exception ?
+
+**Outliers LH** : Valeur faible isolée dans un environnement de valeurs élevées. Exemples : une poche de pauvreté dans un quartier riche, une zone non polluée dans une région polluée. Pourquoi cette "résistance" locale ?
+
+Ces 4 types correspondent aux 4 quadrants du diagramme de Moran.
+:::
+
+------------------------------------------------------------------------
+
+## Types de clusters (2/2)
+
+![](images/carte_lisa.png){width="75%" fig-align="center"}
+
+::: notes
+Cette carte illustre les 4 types de clusters sur des données réelles. Chaque couleur représente un type : généralement rouge pour HH (hot spots), bleu pour LL (cold spots), rose pour HL, bleu clair pour LH. Les zones en gris ou blanc sont non significatives.
+
+Les hot spots et cold spots forment souvent de grandes zones contiguës. Les outliers sont généralement plus isolés et dispersés. Une grande partie de la carte peut être non significative - c'est normal !
+
+**Mise en garde** : Ne pas confondre valeur élevée et hot spot. Une valeur élevée isolée sera un outlier HL, pas un hot spot. L'analyse LISA ne regarde pas la valeur elle-même, mais la valeur PAR RAPPORT à ses voisins.
+
+Avec une telle carte, je peux identifier les zones à fort/faible développement, repérer les anomalies qui méritent attention, cibler des politiques d'aménagement. Les résultats dépendent de la définition du voisinage (matrice W).
+:::
+
+------------------------------------------------------------------------
+
+## Interprétation des LISA
+
+**Utilité** :
+
+-   Identifier des **zones homogènes**
+-   Détecter des **anomalies spatiales**
+-   Guider les **politiques locales**
+-   Compléter l'analyse globale
+
+**Attention** : tenir compte des tests de significativité !
+
+::: notes
+Les hot spots et cold spots montrent où se regroupent des valeurs similaires. C'est utile pour définir des zones d'intervention prioritaires, comprendre la structure spatiale d'un phénomène.
+
+Les outliers sont souvent les plus intéressants : pourquoi cette commune est-elle différente ? Y a-t-il des facteurs explicatifs locaux ? Peut-on en tirer des leçons ?
+
+Les LISA ne remplacent pas l'I de Moran global, ils le complètent. Je fais : I de Moran (autocorrélation globale ?) puis LISA (où sont les clusters ?).
+
+**Mise en garde cruciale** : Seuls les Ii statistiquement significatifs doivent être interprétés. Avec de nombreuses observations, je fais de nombreux tests → risque de faux positifs. Une carte LISA devrait toujours montrer uniquement les clusters significatifs.
+:::
+
+------------------------------------------------------------------------
+
+## LISA avec R
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+library(rgeoda)
+
+# Pour utiliser la fonction local_moran proposée par le package rgeoda 2 pré-requis:
+
+# 1- utiliser la fonction queen_weights du package rgeoda pour calculer une matrice de contiguïté de type queen 
+queen_w <- queen_weights(data_immo)
+# 2- Sortir la variable à étudier dans un vecteur
+prix_med_z = data_immo["prix_med_z"]
+
+lisa <- local_moran(queen_w, prix_med_z)
+
+# Pour visualiser les résultats des LISA il faut les stocker dans des objets ou dans les base de données pour les représenter 
+lisa_colors <- lisa_colors(lisa)
+lisa_labels <- lisa_labels(lisa)
+lisa_clusters <- lisa_clusters(lisa)
+lisa_value <- lisa_values(lisa)
+lisa_pvalue<- lisa_pvalues(lisa)
+
+
+# Carte de Moran locaux
+data_immo$moranlocalvalue <- lisa_values(lisa)
+
+cols_v2 <- c("#08519c", "#3182bd", "#6baed6", "#9ecae1", "#c6dbef", "#eff3ff", "#ffffce", "#fee5d9", "#fcbba1", "#fc9272",  "#fb6a4a", "#de2d26")
+
+mf_map(x = data_immo, 
+       var = "moranlocalvalue", 
+       type = "choro", 
+       border = "#ebebeb", 
+       lwd = 0.1, 
+       pal=cols_v2, 
+       leg_title = "Local Moran", 
+       leg_val_rnd = 1)
+mf_title("Carte des LISA du prix médian du logement")
+
+
+# Carte des p-value des moran locaux
+data_immo$moranlocalpvalue<- lisa_pvalues(lisa)
+
+library(dplyr)
+
+# Pour plus de lisibilité dans la carte on va faire des classes des p-value
+data_immo<- data_immo %>%  mutate(lisapvalue_fac = case_when(moranlocalpvalue <= 0.002 ~ "[0.001;0.002[",
+                           moranlocalpvalue <= 0.01 ~ "[0.002;0.01[",
+                           moranlocalpvalue <= 0.05 ~ "[0.01;0.05[",
+                           TRUE ~ "[0.05;0.5]")) %>%
+  mutate(lisapvalue_fac = factor(lisapvalue_fac,
+                        levels = c("[0.001;0.002[", "[0.002;0.01[",
+                                   "[0.01;0.05[",
+                                  "[0.05;0.5]")))
+
+mypal <- mf_get_pal(n = 4, palette = "Reds")
+
+mf_map(x = data_immo, 
+       var = "lisapvalue_fac", 
+       type = "typo", 
+       border = "grey3", 
+       lwd = 0.1, 
+       pal=mypal, 
+       leg_title = "P-value Local Moran")
+mf_title("Carte des significativité des LISA")
+
+# Carte des clusters lisa avec rgeoda
+
+plot(st_geometry(data_immo), 
+     col=sapply(lisa_clusters, function(x){return(lisa_colors[[x+1]])}), 
+     border = "#333333", lwd=0.2)
+title(main = "Cluster LISA")
+legend('bottomleft', legend = lisa_labels, fill = lisa_colors, border = "#eeeeee")
+
+
+# En utilisant le package mapsf
+
+data_immo$testmoran <- sapply(lisa_clusters, function(x){return(lisa_labels[[x+1]])})
+
+colors <- c("white","blue",rgb(0,0,1,alpha=0.4),rgb(1,0,0,alpha=0.4),"red")
+
+mf_map(x = data_immo, 
+       var = "testmoran", 
+       type = "typo", 
+       border = "black", 
+       lwd = 0.1, 
+       pal= colors,
+       val_order = c("Not significant","Low-Low","Low-High","High-Low","High-High"),
+       leg_title = "Lisa cluster")
+mf_title("LISA clusters")
+
+
+```
