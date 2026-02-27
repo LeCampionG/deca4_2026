@@ -178,6 +178,9 @@ Le module propose une évaluation reposant sur la remise de rendus intermédiair
 - Hugues Pecout (CNRS, UMR Géographie-Cités), 2024. Introduction à R. Formation Interne - Transversalité "Données et protocoles dans les Humanités Numériques". [Consultable ici](https://gitlab.huma-num.fr/geographie-cites/formation/inititation-r/introduction/-/tree/master?ref_type=heads)
 - Lien vers Geoda : https://geodacenter.github.io/
 - Lien vers Magrit : https://magrit.cnrs.fr/
+- Tuto stat spatiale : Consultable ici](https://letg.pages.in2p3.fr/initiation-formation-aux-statistiques-spatiales/ifoss_immo.html#pour-aller-plus-loin-la-gwr-multiscalaire-et-r%C3%A9gionalisation)
+
+
 
 
 
