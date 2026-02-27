@@ -893,7 +893,7 @@ mf_map(x = data_immo)
 
 ```
 
----
+------------------------------------------------------------------------
 
 ## La carte du prix de l'immobilier
 
@@ -920,7 +920,7 @@ mf_title("Prix Médian du logement par EPCI France Métropolitaine") #titre
 
 ```
 
----
+------------------------------------------------------------------------
 
 ## La carte des résidus... ou montrer la structure spatiale
 
@@ -948,8 +948,6 @@ mf_map(x = data_immo,
 mf_title("Résidus modèle lm") #titre
 
 ```
-
-
 
 ------------------------------------------------------------------------
 
@@ -1430,3 +1428,450 @@ mf_title("LISA clusters")
 
 
 ```
+
+## L'Hétérogénéité Spatiale {.center}
+
+------------------------------------------------------------------------
+
+## Le problème de la non-stationnarité
+
+Dans une régression classique, les **coefficients sont constants** :
+
+$$Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \epsilon_i$$
+
+Mais en réalité, les effets peuvent **varier dans l'espace** !
+
+::: notes
+Dans l'équation classique, les β sont des constantes. Cela signifie que l'effet de X1 sur Y est le MÊME partout. Si β1 = 100, une augmentation d'une unité de X1 augmente Y de 100, que ce soit à Paris, à Bordeaux ou à Toulouse.
+
+Pourquoi c'est problématique ? Les processus sociaux, économiques, environnementaux varient dans l'espace. Les marchés immobiliers ne fonctionnent pas de la même façon partout. L'effet de l'éducation sur le revenu peut varier selon le contexte local.
+
+Avec un coefficient constant, je calcule une "moyenne" qui peut ne représenter correctement aucune zone particulière. **Analogie** : C'est comme porter des chaussures de pointure moyenne : elles ne conviennent à personne !
+
+Je ne dis pas que la régression classique est "fausse", mais qu'elle est insuffisante pour capturer la complexité spatiale. Elle donne une vue d'ensemble utile, mais pas l'histoire locale.
+:::
+
+------------------------------------------------------------------------
+
+## Exemple conceptuel
+
+**Question** : Quel est l'effet de la surface sur le prix immobilier ?
+
+-   En centre-ville : effet fort
+-   En périphérie : effet plus faible
+-   En zone rurale : effet encore différent
+
+➜ Un seul coefficient global est **inadapté**
+
+::: notes
+Imaginons qu'on estime une régression classique sur toute une région métropolitaine : Prix = ... + 3000€ × Surface + ... Ce coefficient de 3000€/m² est une MOYENNE sur toute la zone.
+
+**En centre-ville dense** : L'espace est très contraint, la demande forte. Chaque m² supplémentaire a une grande valeur. Le vrai coefficient pourrait être 5000€/m².
+
+**En périphérie** : Plus d'espace disponible, demande modérée. L'effet de la surface est moins marqué. Le vrai coefficient pourrait être 2500€/m².
+
+**En zone rurale** : Abondance d'espace, marché différent. La surface compte moins que d'autres facteurs. Le vrai coefficient pourrait être 1000€/m².
+
+Le problème avec 3000€ : Ce coefficient moyen ne décrit correctement AUCUNE de ces trois zones. Je sous-estime l'effet en centre-ville, je le surestime en zone rurale. Conséquences : prédictions inexactes localement, compréhension erronée des mécanismes locaux.
+:::
+
+------------------------------------------------------------------------
+
+## Solutions possibles
+
+1.  **Variables d'interaction** : limité et arbitraire
+
+2.  **Modèles par sous-zones** : perte de continuité spatiale
+
+3.  **Geographically Weighted Regression (GWR)** :
+
+    -   Coefficients variables dans l'espace
+    -   Continuité spatiale préservée
+    -   Exploration des variations locales
+
+::: notes
+**Variables d'interaction** : Ajouter des interactions entre les variables et des zones. Exemple : Prix = β1×Surface + β2×Surface×CentreVille + β3×Surface×Périphérie. Limites : nécessite de définir a priori des zones (arbitraire), effets constants DANS chaque zone (pas de gradualité), ne capture pas les variations continues dans l'espace.
+
+**Modèles par sous-zones** : Estimer un modèle séparé pour chaque sous-région. Limites : nécessite de découper l'espace (frontières arbitraires), discontinuités artificielles aux frontières, nécessite beaucoup de données par zone.
+
+**GWR** : Pas de découpage arbitraire (l'espace est traité de façon continue), coefficients variant graduellement (je capture les transitions douces), visualisation intuitive (je peux cartographier chaque coefficient).
+
+**Analogie** : Interactions/sous-zones = découper une photo en zones de couleurs uniformes. GWR = garder toutes les nuances et dégradés de la photo originale.
+:::
+
+------------------------------------------------------------------------
+
+## La GWR - Principes {.center}
+
+------------------------------------------------------------------------
+
+## Définition de la GWR
+
+**Geographically Weighted Regression** :
+
+Méthode de régression où les coefficients **varient localement** :
+
+$$Y_i = \beta_0(u_i, v_i) + \sum_{k}\beta_k(u_i, v_i)X_{ki} + \epsilon_i$$
+
+-   $(u_i, v_i)$ : coordonnées spatiales de i
+-   $\beta_k(u_i, v_i)$ : coefficient variable dans l'espace
+
+::: notes
+Comparons avec la régression classique : Classique = $Y_i = \beta_0 + \beta_1 X_{1i} + ...$ (β constants). GWR = $Y_i = \beta_0(u_i, v_i) + \beta_1(u_i, v_i) X_{1i} + ...$ (β fonctions des coordonnées).
+
+$\beta_k(u_i, v_i)$ signifie que le coefficient β de la variable k dépend de la position géographique (u, v) de l'observation i. C'est une fonction qui change continûment dans l'espace.
+
+Au lieu d'avoir UN coefficient par variable pour tout le monde, j'ai un coefficient DIFFÉRENT pour chaque point de l'espace. Si j'ai 100 communes, j'aurai 100 coefficients pour chaque variable.
+
+**Analogie** : Régression classique = dire "la température moyenne en France est 15°C". GWR = avoir une carte météo avec la température en chaque point.
+
+**Mise en garde** : Nous n'aurons pas à faire les calculs à la main. R fera les calculs.
+:::
+
+------------------------------------------------------------------------
+
+## Principe de la GWR (1/2)
+
+Pour chaque point i, on estime un **modèle local** :
+
+1.  Définir un **voisinage** autour de i
+2.  **Pondérer** les observations selon leur distance à i
+3.  Estimer les coefficients pour i
+4.  Répéter pour chaque observation
+
+::: notes
+Pour chaque observation i, je vais estimer un modèle de régression LOCAL en donnant plus de poids aux observations proches et moins de poids aux observations éloignées.
+
+Autour du point i où je veux estimer les coefficients, je définis une zone d'influence (déterminée par le bandwidth). Les observations très proches de i ont un poids élevé (proche de 1), les observations éloignées ont un poids faible (proche de 0). Je fais une régression pondérée. Je répète pour CHAQUE observation (si 100 communes, 100 régressions locales).
+
+**Analogie** : Pour connaître le prix moyen des logements à un endroit précis, je donne plus de crédit aux transactions récentes dans le quartier immédiat.
+
+**Mise en garde** : Ce n'est pas 100 régressions totalement indépendantes. Les voisinages se chevauchent, ce qui assure une continuité spatiale des coefficients.
+:::
+
+------------------------------------------------------------------------
+
+## Principe de la GWR (2/2)
+
+![](images/gwr.png){width="70%" fig-align="center"}
+
+Chaque point a son propre modèle local
+
+::: notes
+L'illustration montre un point central (en rouge) et un cercle autour représentant la zone d'influence (bandwidth). Les points à l'intérieur du cercle contribuent à l'estimation des coefficients pour le point central. Le dégradé de couleurs indique la pondération - plus foncé = poids plus élevé.
+
+J'imagine que je déplace ce cercle sur toute la carte, point par point. À chaque position, j'obtiens un nouveau modèle local. Les cercles se chevauchent, ce qui crée une transition douce entre les coefficients.
+
+**Différence avec OLS** : OLS = un seul modèle pour toute la carte. GWR = autant de modèles que de points, mais qui se "fondent" les uns dans les autres.
+:::
+
+------------------------------------------------------------------------
+
+## La fonction de pondération
+
+**Fonction gaussienne** (la plus courante) :
+
+$$w_{ij} = \exp\left(-\frac{d_{ij}^2}{b^2}\right)$$
+
+-   $d_{ij}$ : distance entre i et j
+-   $b$ : **bandwidth** (largeur de bande)
+-   Plus on s'éloigne de i, moins le poids est important
+
+![](images/formatnoyau.png){width="30%" fig-align="center"}
+
+::: notes
+C'est une fonction exponentielle décroissante basée sur la distance. Quand $d_{ij} = 0$ (i et j au même endroit) : $w_{ij} = 1$ (poids maximum). Quand $d_{ij}$ augmente : $w_{ij}$ diminue exponentiellement. Quand $d_{ij}$ est très grand : $w_{ij} \approx 0$ (poids quasi nul).
+
+Le bandwidth contrôle la vitesse de décroissance : b petit = décroissance rapide (seuls les voisins très proches ont un poids significatif). b grand = décroissance lente (même des observations éloignées gardent un poids notable).
+
+**Analogie** : C'est comme l'influence d'une source lumineuse : très forte au centre, qui s'affaiblit progressivement avec la distance. Le bandwidth détermine la "portée" de la lumière.
+
+La gaussienne est la plus courante, mais il existe d'autres fonctions (bi-square, tri-cube). R calcule automatiquement ces poids.
+:::
+
+------------------------------------------------------------------------
+
+## Le paramètre clé : bandwidth
+
+Le **bandwidth** (b) détermine la taille du voisinage :
+
+-   **b petit** : forte variation locale, risque de sur-ajustement
+-   **b grand** : lissage, se rapproche du modèle global
+-   **b optimal** : minimise un critère (AICc, CV)
+
+::: notes
+Le choix du bandwidth est LA décision critique dans une GWR.
+
+**Bandwidth petit** : Voisinage restreint, coefficients très variables. Avantage : capture les variations locales fines. **Mise en garde** : sur-ajustement (le modèle s'adapte au bruit plutôt qu'au signal). **Analogie** : zoomer très fort sur une photo - je vois les pixels.
+
+**Bandwidth grand** : Voisinage étendu, coefficients variant lentement. Avantage : estimation stable. Risque : perte des variations locales intéressantes. Dans l'extrême, si b → ∞, je retrouve la régression OLS. **Analogie** : dézoomer sur une photo - je vois l'ensemble mais je perds les détails.
+
+**Bandwidth optimal** : Compromis entre capturer les variations locales significatives sans sur-ajuster. Toujours utiliser la sélection automatique (AICc ou CV).
+
+**Analogie** : Comme un thermostat - trop peu = confort variable, trop = pas d'adaptation, optimal = juste ce qu'il faut.
+:::
+
+------------------------------------------------------------------------
+
+## Sélection automatique du bandwidth
+
+**Critère AICc** (Akaike Information Criterion corrigé) :
+
+-   Compromis ajustement / complexité
+-   Correction pour petits échantillons
+-   Sélection automatique possible
+
+**Cross-validation** :
+
+-   Validation croisée
+-   Erreur de prédiction
+
+::: notes
+Le AICc équilibre deux objectifs : avoir un bon ajustement aux données (faible erreur) ET garder un modèle pas trop complexe (parcimonie). Le "corrigé" inclut une correction pour les petits échantillons, important pour la GWR car chaque modèle local n'utilise qu'un sous-ensemble des données.
+
+Je teste différentes valeurs de bandwidth, pour chaque valeur je calcule l'AICc, je choisis le bandwidth qui minimise l'AICc. R le fait automatiquement avec `bw.gwr()`.
+
+**Cross-validation** : Basée sur capacité prédictive. Je retire une observation, j'estime le modèle GWR sur les données restantes, je prédis la valeur de l'observation retirée, je calcule l'erreur. Je répète pour toutes les observations. Le bandwidth optimal minimise l'erreur de prédiction totale.
+
+**Quelle méthode ?** AICc : plus rapide, recommandé par défaut. CV : plus lent mais préférable si l'objectif est la prédiction.
+
+**Mise en garde** : Ne jamais fixer le bandwidth arbitrairement !
+:::
+
+------------------------------------------------------------------------
+
+## Produire une GWR avec R
+
+Pour réaliser une GWR sur R plusieurs packages reconnus existent. On peut citer notamment le package spgwret le package `GWmodel`. Nous choisirons d’utiliser ici le package `GWmodel`.
+
+::: callout-note
+Attention, les fonctions de ce package ne sont pas utilisables sur des objets de type sf, il faut travailler sur des objets de type Spatial DataFrame (SpatialPointsDataFrame or SpatialPolygonsDataFrame) (contrairement à spgwr qui peut travailler avec un format sf).
+:::
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+class(data_immo)
+
+sp_data_immo <- as(data_immo, "Spatial")
+class(sp_data_immo)
+
+```
+
+------------------------------------------------------------------------
+
+## Calcul de la matrice des distances
+
+La première étape est de calculer la distance entre toutes nos observations. Pour ce faire nous utiliserons la fonction `gw.dist()`.
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+library(GWmodel)
+
+# Pour construire la matrice de distances entre centroïdes des EPCI :
+dm.calib <- gw.dist(dp.locat = coordinates(sp_data_immo))
+
+```
+
+------------------------------------------------------------------------
+
+## La GWR - Interprétation {.center}
+
+------------------------------------------------------------------------
+
+## Résultats de la GWR
+
+Pour chaque observation, on obtient :
+
+1.  **Coefficients locaux** pour chaque variable
+2.  **R² local** : qualité de l'ajustement local
+3.  **Résidus** : erreurs de prédiction
+4.  **Tests de significativité**
+
+::: notes
+La GWR produit beaucoup plus de résultats qu'une régression classique car tout est local. Si j'ai 3 variables et 100 observations, j'obtiens 300 coefficients (3×100). Chaque observation a ses propres coefficients. C'est une richesse mais aussi une complexité.
+
+R² local mesure la qualité de l'ajustement pour chaque point. Je peux identifier où le modèle fonctionne bien/mal. **Mise en garde** : R² local peut être élevé même si le modèle sur-ajuste.
+
+Les résidus sont locaux. Je peux vérifier si des patterns spatiaux persistent. Si résidus auto-corrélés → problème non résolu par GWR.
+
+**Mise en garde** : Tests de significativité difficiles à interpréter avec GWR (problème de tests multiples).
+
+La cartographie est essentielle pour visualiser et comprendre les patterns.
+:::
+
+------------------------------------------------------------------------
+
+## Visualisation des coefficients
+
+**Cartographie des coefficients** :
+
+-   Une carte par variable explicative
+-   Identifier les zones de forte/faible influence
+-   Comprendre les variations spatiales des relations
+
+::: notes
+La cartographie est L'OUTIL essentiel pour interpréter une GWR. Sans carte, les centaines de coefficients sont inexploitables. Je crée une carte choroplèthe pour chaque variable où la couleur représente la valeur du coefficient local.
+
+Je peux voir : zones où l'effet est fort (couleur foncée) vs faible (couleur claire), gradients spatiaux (l'effet augmente/diminue dans une direction), zones homogènes vs hétérogènes.
+
+Exemple immobilier, carte du coefficient "Surface" : Rouge foncé en centre-ville = effet fort (5000€/m²), jaune en périphérie = effet modéré (2500€/m²), bleu en zone rurale = effet faible (1000€/m²).
+
+Si j'ai 5 variables explicatives, je produirai 5 cartes + potentiellement une carte du R² local. Cette visualisation révèle souvent des patterns géographiques qu'on ne soupçonnait pas !
+:::
+
+------------------------------------------------------------------------
+
+## Comparaison GWR vs. OLS
+
+::::: columns
+::: {.column width="50%"}
+### Régression OLS
+
+-   1 coefficient par variable
+-   R² global
+-   Hypothèse de stationnarité
+:::
+
+::: {.column width="50%"}
+### GWR
+
+-   n coefficients par variable
+-   n R² locaux
+-   Variation spatiale explicite
+:::
+:::::
+
+**Test** : La GWR est-elle meilleure que l'OLS ?
+
+::: notes
+**Mise en garde** : GWR n'est pas toujours meilleure qu'OLS !
+
+OLS : Simple, parcimonieux, facile à interpréter. UN résultat par variable qu'on peut facilement communiquer. Suffisant si l'hétérogénéité spatiale est faible.
+
+GWR : Complexe, riche en information, difficile à résumer. BEAUCOUP de résultats qu'il faut visualiser. Nécessaire si forte hétérogénéité spatiale.
+
+Je dois TOUJOURS commencer par estimer un modèle OLS, puis GWR, puis comparer : (1) AICc : GWR devrait avoir un AICc significativement plus faible, (2) R² : GWR aura un R² plus élevé (mais peut sur-ajuster !), (3) Résidus : Les résidus GWR ont-ils encore de l'autocorrélation ?, (4) Interprétabilité : Les patterns géographiques révélés par GWR sont-ils substantiels et interprétables ?
+
+**Règle d'or** : Ne pas utiliser GWR systématiquement. Seulement si l'amélioration est substantielle, les variations géographiques ont du sens théoriquement, et j'ai suffisamment de données. Parfois, OLS suffit et est préférable (principe de parcimonie) !
+:::
+
+------------------------------------------------------------------------
+
+## Avantages de la GWR
+
+-   Capture l'**hétérogénéité spatiale**
+-   Permet une **analyse locale** fine
+-   **Exploration** des variations spatiales
+-   Meilleure **capacité prédictive** (souvent)
+
+::: notes
+GWR révèle comment les relations varient dans l'espace, contrairement à OLS qui impose des coefficients constants. Elle permet de comprendre les spécificités de chaque zone - très utile pour les décideurs locaux qui veulent des informations sur LEUR territoire, pas une moyenne nationale.
+
+GWR est un excellent outil exploratoire. Je découvre parfois des patterns géographiques inattendus qui génèrent de nouvelles hypothèses.
+
+Souvent (mais pas toujours !), GWR prédit mieux que OLS car elle capture mieux les variations locales. À vérifier avec la cross-validation.
+
+Applications concrètes : en urbanisme (adapter les politiques aux contextes locaux), en immobilier (prédictions plus précises localement), en santé (identifier facteurs de risque spécifiques à certaines zones).
+
+**Mise en garde** : GWR est un outil puissant mais pas magique - il faut l'utiliser à bon escient.
+:::
+
+------------------------------------------------------------------------
+
+## Limites et précautions (1/2)
+
+**Problèmes possibles** :
+
+-   **Multicolinéarité locale** : instabilité des coefficients
+-   **Sur-ajustement** : bandwidth trop petit
+-   **Autocorrélation spatiale** : résidus non indépendants
+-   **Interprétation** : complexité accrue
+
+::: notes
+**Multicolinéarité locale** : Même si les variables ne sont pas trop corrélées globalement, elles peuvent l'être localement. Cela rend les coefficients locaux instables.
+
+**Sur-ajustement** : Si le bandwidth est trop petit, le modèle s'adapte au bruit plutôt qu'au signal. D'où l'importance de la sélection automatique.
+
+**Mise en garde importante** : GWR gère l'hétérogénéité, PAS l'autocorrélation ! Si mes résidus GWR sont encore autocorrélés, il faut peut-être un modèle GWRSAR.
+
+**Complexité d'interprétation** : Avec des centaines de coefficients, difficile de communiquer simplement les résultats. Il faut résumer, cartographier, choisir quelques zones d'intérêt.
+:::
+
+------------------------------------------------------------------------
+
+## Limites et précautions (2/2)
+
+**Bonnes pratiques** :
+
+1.  Toujours comparer avec un modèle OLS
+2.  Vérifier la multicolinéarité locale
+3.  Analyser les résidus (autocorrélation)
+4.  Interpréter avec prudence
+5.  Croiser avec expertise du terrain
+
+::: notes
+Ne jamais présenter seulement GWR. Je montre d'abord OLS, puis GWR, et je justifie pourquoi GWR apporte un plus. Si l'amélioration est marginale, je reste avec OLS (parcimonie).
+
+Le package GWmodel fournit des diagnostics. **Mise en garde** : Si multicolinéarité locale forte, certains coefficients peuvent être très instables.
+
+Je dois analyser les résidus : calculer l'I de Moran sur les résidus GWR. Si encore autocorrélés → GWR n'a pas tout résolu. Je cartographie les résidus pour voir où le modèle échoue.
+
+Ne pas sur-interpréter de petites variations locales. Je me concentre sur les patterns géographiques forts et cohérents. Je tiens compte de l'incertitude des estimations locales.
+
+Les variations géographiques révélées par GWR doivent faire sens au regard de la connaissance du terrain. Si un pattern est inexplicable, il est peut-être artéfactuel.
+
+GWR est un outil puissant qui nécessite rigueur méthodologique et esprit critique.
+:::
+
+# VIII. Extensions de la GWR
+
+## MGWR : Multiscale GWR
+
+**Idée** : différentes variables peuvent varier à différentes échelles
+
+-   Bandwidth **spécifique** par variable
+-   Certaines variables à effet global
+-   D'autres à effet local
+
+$$Y_i = \sum_{k}\beta_k(u_i, v_i, b_k)X_{ki} + \epsilon_i$$
+
+::: notes
+GWR classique utilise le MÊME bandwidth pour toutes les variables. Cela implique que toutes les relations varient à la même échelle spatiale. Certains processus varient à petite échelle (effet très local), d'autres à grande échelle (effet régional), d'autres sont constants (effet global).
+
+Exemple prix immobilier : Effet de la proximité aux transports = très local (petit bandwidth). Effet du niveau socio-économique régional = échelle moyenne. Effet de la conjoncture économique nationale = global (bandwidth infini = coefficient constant).
+
+MGWR est plus flexible et souvent plus réaliste. Chaque variable trouve son échelle naturelle de variation. Package R `mgwrsar` permet d'estimer MGWR.
+
+Pour ce cours d'initiation, comprendre le principe suffit.
+:::
+
+------------------------------------------------------------------------
+
+## GWRSAR : GWR avec autocorrélation
+
+Combine GWR et modèles d'autocorrélation spatiale :
+
+-   Gère simultanément hétérogénéité ET autocorrélation
+-   Modèle plus complexe
+-   Package R : `mgwrsar`
+
+::: notes
+GWRSAR traite les DEUX problèmes identifiés au début : GWR traite l'hétérogénéité spatiale (coefficients variables), modèles SAR/SEM traitent l'autocorrélation (dépendance). Ces deux problèmes peuvent coexister ! Je peux avoir des coefficients qui varient dans l'espace ET des résidus autocorrélés.
+
+GWRSAR combine les deux approches dans un modèle unifié. C'est le "couteau suisse" de la statistique spatiale.
+
+Quand l'utiliser ? Après avoir fait GWR, si les résidus sont encore autocorrélés. Ou si je sais a priori que j'ai les deux problèmes.
+
+**Mise en garde** : C'est un modèle avancé, difficile à estimer et interpréter. Réservé aux situations où la GWR simple ne suffit pas.
+
+Package R `mgwrsar` est récent et puissant. Pour débuter, maîtriser GWR classique est suffisant. MGWR et GWRSAR sont des outils pour aller plus loin.
+:::
+
+
