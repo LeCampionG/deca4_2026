@@ -1565,6 +1565,110 @@ J'imagine que je déplace ce cercle sur toute la carte, point par point. À chaq
 **Différence avec OLS** : OLS = un seul modèle pour toute la carte. GWR = autant de modèles que de points, mais qui se "fondent" les uns dans les autres.
 :::
 
+---
+
+## Comparaison GWR vs. OLS
+
+::::: columns
+::: {.column width="50%"}
+### Régression OLS
+
+-   1 coefficient par variable
+-   R² global
+-   Hypothèse de stationnarité
+:::
+
+::: {.column width="50%"}
+### GWR
+
+-   n coefficients par variable
+-   n R² locaux
+-   Variation spatiale explicite
+:::
+:::::
+
+**Test** : La GWR est-elle meilleure que l'OLS ?
+
+::: notes
+**Mise en garde** : GWR n'est pas toujours meilleure qu'OLS !
+
+OLS : Simple, parcimonieux, facile à interpréter. UN résultat par variable qu'on peut facilement communiquer. Suffisant si l'hétérogénéité spatiale est faible.
+
+GWR : Complexe, riche en information, difficile à résumer. BEAUCOUP de résultats qu'il faut visualiser. Nécessaire si forte hétérogénéité spatiale.
+
+Je dois TOUJOURS commencer par estimer un modèle OLS, puis GWR, puis comparer : (1) AICc : GWR devrait avoir un AICc significativement plus faible, (2) R² : GWR aura un R² plus élevé (mais peut sur-ajuster !), (3) Résidus : Les résidus GWR ont-ils encore de l'autocorrélation ?, (4) Interprétabilité : Les patterns géographiques révélés par GWR sont-ils substantiels et interprétables ?
+
+**Règle d'or** : Ne pas utiliser GWR systématiquement. Seulement si l'amélioration est substantielle, les variations géographiques ont du sens théoriquement, et j'ai suffisamment de données. Parfois, OLS suffit et est préférable (principe de parcimonie) !
+:::
+
+------------------------------------------------------------------------
+
+## Avantages de la GWR
+
+-   Capture l'**hétérogénéité spatiale**
+-   Permet une **analyse locale** fine
+-   **Exploration** des variations spatiales
+-   Meilleure **capacité prédictive** (souvent)
+
+::: notes
+GWR révèle comment les relations varient dans l'espace, contrairement à OLS qui impose des coefficients constants. Elle permet de comprendre les spécificités de chaque zone - très utile pour les décideurs locaux qui veulent des informations sur LEUR territoire, pas une moyenne nationale.
+
+GWR est un excellent outil exploratoire. Je découvre parfois des patterns géographiques inattendus qui génèrent de nouvelles hypothèses.
+
+Souvent (mais pas toujours !), GWR prédit mieux que OLS car elle capture mieux les variations locales. À vérifier avec la cross-validation.
+
+Applications concrètes : en urbanisme (adapter les politiques aux contextes locaux), en immobilier (prédictions plus précises localement), en santé (identifier facteurs de risque spécifiques à certaines zones).
+
+**Mise en garde** : GWR est un outil puissant mais pas magique - il faut l'utiliser à bon escient.
+:::
+
+------------------------------------------------------------------------
+
+## Limites et précautions (1/2)
+
+**Problèmes possibles** :
+
+-   **Multicolinéarité locale** : instabilité des coefficients
+-   **Sur-ajustement** : bandwidth trop petit
+-   **Autocorrélation spatiale** : résidus non indépendants
+-   **Interprétation** : complexité accrue
+
+::: notes
+**Multicolinéarité locale** : Même si les variables ne sont pas trop corrélées globalement, elles peuvent l'être localement. Cela rend les coefficients locaux instables.
+
+**Sur-ajustement** : Si le bandwidth est trop petit, le modèle s'adapte au bruit plutôt qu'au signal. D'où l'importance de la sélection automatique.
+
+**Mise en garde importante** : GWR gère l'hétérogénéité, PAS l'autocorrélation ! Si mes résidus GWR sont encore autocorrélés, il faut peut-être un modèle GWRSAR.
+
+**Complexité d'interprétation** : Avec des centaines de coefficients, difficile de communiquer simplement les résultats. Il faut résumer, cartographier, choisir quelques zones d'intérêt.
+:::
+
+------------------------------------------------------------------------
+
+## Limites et précautions (2/2)
+
+**Bonnes pratiques** :
+
+1.  Toujours comparer avec un modèle OLS
+2.  Vérifier la multicolinéarité locale
+3.  Analyser les résidus (autocorrélation)
+4.  Interpréter avec prudence
+5.  Croiser avec expertise du terrain
+
+::: notes
+Ne jamais présenter seulement GWR. Je montre d'abord OLS, puis GWR, et je justifie pourquoi GWR apporte un plus. Si l'amélioration est marginale, je reste avec OLS (parcimonie).
+
+Le package GWmodel fournit des diagnostics. **Mise en garde** : Si multicolinéarité locale forte, certains coefficients peuvent être très instables.
+
+Je dois analyser les résidus : calculer l'I de Moran sur les résidus GWR. Si encore autocorrélés → GWR n'a pas tout résolu. Je cartographie les résidus pour voir où le modèle échoue.
+
+Ne pas sur-interpréter de petites variations locales. Je me concentre sur les patterns géographiques forts et cohérents. Je tiens compte de l'incertitude des estimations locales.
+
+Les variations géographiques révélées par GWR doivent faire sens au regard de la connaissance du terrain. Si un pattern est inexplicable, il est peut-être artéfactuel.
+
+GWR est un outil puissant qui nécessite rigueur méthodologique et esprit critique.
+:::
+
 ------------------------------------------------------------------------
 
 ## La fonction de pondération
@@ -1679,6 +1783,88 @@ dm.calib <- gw.dist(dp.locat = coordinates(sp_data_immo))
 
 ```
 
+---
+
+## Définition de la bande passante avec R
+
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+# Définition de la bande passante (bandwidth en anglais)
+# Cette fonction n'est pas compatible avec le format sf il faut un Spatial DataFrame (contrairement à spgwr qui peut travailler avec un format sf)
+bw_g <- bw.gwr(data = sp_data_immo, 
+              approach = "AICc", 
+              kernel = "gaussian", 
+              adaptive = TRUE,
+              dMat = dm.calib,
+              formula = prix_med ~ perc_log_vac + perc_maison + perc_tiny_log + dens_pop + med_niveau_vis + part_log_suroccup + part_agri_nb_emploi + part_cadre_profintellec_nbemploi)
+
+```
+
+---
+
+## Estimation du modèle
+
+Une fois la bande passante définie, on peut lancer l’estimation de notre modèle de GWR :
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+mod.gwr_g <- gwr.robust(data = sp_data_immo, 
+                   dMat = dm.calib,
+                   bw = bw_g,
+                   kernel = "gaussian",
+                   filtered = FALSE, # un des problèmes de la GWR est de gérer des individus "aberrants" au niveau local. 2 méthodes ont été définies pour gérer cela. 
+                                    # Méthode 1 (argument TRUE) on filtre en fonction des individus standardisés. L'objectif est de détecter les individus dont les résidus sont très élevés et de les exclure.
+                                    # Methode 2 (argument FALSE) on diminue le poids des observations aux résidus élevés.
+                   adaptive = TRUE,
+                   formula = prix_med ~ perc_log_vac + perc_maison + perc_tiny_log + dens_pop + med_niveau_vis + part_log_suroccup + part_agri_nb_emploi + part_cadre_profintellec_nbemploi)
+
+```
+
+---
+
+## Comparer les modèless
+
+Si on souhaite comparer deux modèles car nous avons un doute sur les paramètres c’est tout à fait possible. Par exemple ici nous souhaitons comparer deux formes de noyaux.
+
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+bw_tri <- bw.gwr(data = sp_data_immo, 
+              approach = "AICc", 
+              kernel = "tricube", 
+              adaptive = TRUE, 
+              dMat = dm.calib,
+              formula = prix_med ~ perc_log_vac + perc_maison + perc_tiny_log + dens_pop + med_niveau_vis + part_log_suroccup + part_agri_nb_emploi + part_cadre_profintellec_nbemploi)
+
+mod.gwr_tri <- gwr.robust(data = sp_data_immo, 
+                   dMat = dm.calib,
+                   bw = bw_tri,
+                   kernel = "gaussian",
+                   filtered = FALSE,
+                   adaptive = TRUE,
+                   formula = prix_med ~ perc_log_vac + perc_maison + perc_tiny_log + dens_pop + med_niveau_vis + part_log_suroccup + part_agri_nb_emploi + part_cadre_profintellec_nbemploi)
+
+Best_gwr <- cbind(
+  rbind(bw_g, bw_tri),
+  rbind(mod.gwr_g$GW.diagnostic$gw.R2,mod.gwr_tri$GW.diagnostic$gw.R2),
+  rbind(mod.gwr_g$GW.diagnostic$AIC,mod.gwr_tri$GW.diagnostic$AIC)) %>% 
+  `colnames<-`(c("Nb Voisins","R2","AIC")) %>% 
+  `rownames<-`(c("GAUSSIAN","TRICUBE"))
+
+Best_gwr
+
+```
+
 ------------------------------------------------------------------------
 
 ## La GWR - Interprétation {.center}
@@ -1728,107 +1914,288 @@ Si j'ai 5 variables explicatives, je produirai 5 cartes + potentiellement une ca
 
 ------------------------------------------------------------------------
 
-## Comparaison GWR vs. OLS
 
-::::: columns
-::: {.column width="50%"}
-### Régression OLS
+## Interprétation des premiers résultats
 
--   1 coefficient par variable
--   R² global
--   Hypothèse de stationnarité
-:::
 
-::: {.column width="50%"}
-### GWR
+Comme pour le modèle linéaire classique l’objet qui contient notre GWR est composé de plusieurs éléments. A la différence du modèle classique pour obtenir nos résultats il suffit d’appeler l’objet :
 
--   n coefficients par variable
--   n R² locaux
--   Variation spatiale explicite
-:::
-:::::
 
-**Test** : La GWR est-elle meilleure que l'OLS ?
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
 
-::: notes
-**Mise en garde** : GWR n'est pas toujours meilleure qu'OLS !
+# Pour voir les différents éléments qui composent notre modèle de GWR
+summary(mod.gwr_g)
 
-OLS : Simple, parcimonieux, facile à interpréter. UN résultat par variable qu'on peut facilement communiquer. Suffisant si l'hétérogénéité spatiale est faible.
+```
 
-GWR : Complexe, riche en information, difficile à résumer. BEAUCOUP de résultats qu'il faut visualiser. Nécessaire si forte hétérogénéité spatiale.
+Pour accéder aux résultats :
 
-Je dois TOUJOURS commencer par estimer un modèle OLS, puis GWR, puis comparer : (1) AICc : GWR devrait avoir un AICc significativement plus faible, (2) R² : GWR aura un R² plus élevé (mais peut sur-ajuster !), (3) Résidus : Les résidus GWR ont-ils encore de l'autocorrélation ?, (4) Interprétabilité : Les patterns géographiques révélés par GWR sont-ils substantiels et interprétables ?
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
 
-**Règle d'or** : Ne pas utiliser GWR systématiquement. Seulement si l'amélioration est substantielle, les variations géographiques ont du sens théoriquement, et j'ai suffisamment de données. Parfois, OLS suffit et est préférable (principe de parcimonie) !
-:::
+mod.gwr_g
 
-------------------------------------------------------------------------
+```
+---
 
-## Avantages de la GWR
+## Visualiser les résultats
 
--   Capture l'**hétérogénéité spatiale**
--   Permet une **analyse locale** fine
--   **Exploration** des variations spatiales
--   Meilleure **capacité prédictive** (souvent)
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
 
-::: notes
-GWR révèle comment les relations varient dans l'espace, contrairement à OLS qui impose des coefficients constants. Elle permet de comprendre les spécificités de chaque zone - très utile pour les décideurs locaux qui veulent des informations sur LEUR territoire, pas une moyenne nationale.
+# Pour visualiser ce fichier dans R
+#View(mod.gwr_g$SDF@data)
 
-GWR est un excellent outil exploratoire. Je découvre parfois des patterns géographiques inattendus qui génèrent de nouvelles hypothèses.
+#Pour voir à quoi il ressemble de manière interactive
+datatable(mod.gwr_g$SDF@data)
 
-Souvent (mais pas toujours !), GWR prédit mieux que OLS car elle capture mieux les variations locales. À vérifier avec la cross-validation.
+# Pour voir les variables qui le constituent
+names(mod.gwr_g$SDF@data)
 
-Applications concrètes : en urbanisme (adapter les politiques aux contextes locaux), en immobilier (prédictions plus précises localement), en santé (identifier facteurs de risque spécifiques à certaines zones).
+```
 
-**Mise en garde** : GWR est un outil puissant mais pas magique - il faut l'utiliser à bon escient.
-:::
+---
 
-------------------------------------------------------------------------
+## Représenter nos résidus de la GWR
 
-## Limites et précautions (1/2)
 
-**Problèmes possibles** :
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
 
--   **Multicolinéarité locale** : instabilité des coefficients
--   **Sur-ajustement** : bandwidth trop petit
--   **Autocorrélation spatiale** : résidus non indépendants
--   **Interprétation** : complexité accrue
 
-::: notes
-**Multicolinéarité locale** : Même si les variables ne sont pas trop corrélées globalement, elles peuvent l'être localement. Cela rend les coefficients locaux instables.
+res_gwr <- mod.gwr_g$SDF$Stud_residual
+data_immo$res_gwr <- res_gwr
 
-**Sur-ajustement** : Si le bandwidth est trop petit, le modèle s'adapte au bruit plutôt qu'au signal. D'où l'importance de la sélection automatique.
+# carto résidus v2
+mf_map(x = data_immo, 
+       var = "res_gwr", 
+       type = "choro", 
+       border = "#ebebeb", 
+       lwd = 0.1, 
+       breaks = quantile(data_immo$res_gwr, seq(0,1, by=1/11)), 
+       pal = cols_v2, 
+       leg_title = "Résidus GWR", 
+       leg_val_rnd = 1)
+mf_title("Résidus GWR")
 
-**Mise en garde importante** : GWR gère l'hétérogénéité, PAS l'autocorrélation ! Si mes résidus GWR sont encore autocorrélés, il faut peut-être un modèle GWRSAR.
+```
 
-**Complexité d'interprétation** : Avec des centaines de coefficients, difficile de communiquer simplement les résultats. Il faut résumer, cartographier, choisir quelques zones d'intérêt.
-:::
+---
 
-------------------------------------------------------------------------
+## Etude des coefficients
 
-## Limites et précautions (2/2)
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
 
-**Bonnes pratiques** :
 
-1.  Toujours comparer avec un modèle OLS
-2.  Vérifier la multicolinéarité locale
-3.  Analyser les résidus (autocorrélation)
-4.  Interpréter avec prudence
-5.  Croiser avec expertise du terrain
+# On ajoute à data_immo les coefficients
 
-::: notes
-Ne jamais présenter seulement GWR. Je montre d'abord OLS, puis GWR, et je justifie pourquoi GWR apporte un plus. Si l'amélioration est marginale, je reste avec OLS (parcimonie).
+data_immo$agri.coef=mod.gwr_g$SDF$part_agri_nb_emploi
+data_immo$perc_maison.coef <- mod.gwr_g$SDF$perc_maison
+data_immo$dens_pop.coef=mod.gwr_g$SDF$dens_pop
+data_immo$med_vie.coef=mod.gwr_g$SDF$med_niveau_vis
+data_immo$logvac.coef=mod.gwr_g$SDF$perc_log_vac
+data_immo$tinylog.coef=mod.gwr_g$SDF$perc_tiny_log
+data_immo$suroccup.coef=mod.gwr_g$SDF$part_log_suroccup
+data_immo$cadre.coef=mod.gwr_g$SDF$part_cadre_profintellec_nbemploi
 
-Le package GWmodel fournit des diagnostics. **Mise en garde** : Si multicolinéarité locale forte, certains coefficients peuvent être très instables.
+# Réaliser la collection des cartes
 
-Je dois analyser les résidus : calculer l'I de Moran sur les résidus GWR. Si encore autocorrélés → GWR n'a pas tout résolu. Je cartographie les résidus pour voir où le modèle échoue.
+par(mfrow = c(2, 4))
 
-Ne pas sur-interpréter de petites variations locales. Je me concentre sur les patterns géographiques forts et cohérents. Je tiens compte de l'incertitude des estimations locales.
+mf_map(x = data_immo, var = "agri.coef", type = "choro", pal= "Earth")
+mf_title("Coefficients Agriculteurs")
 
-Les variations géographiques révélées par GWR doivent faire sens au regard de la connaissance du terrain. Si un pattern est inexplicable, il est peut-être artéfactuel.
+mf_map(x = data_immo, var = "perc_maison.coef", type = "choro", pal= "Earth")
+mf_title("Coefficients de Maison")
 
-GWR est un outil puissant qui nécessite rigueur méthodologique et esprit critique.
-:::
+mf_map(x = data_immo, var = "dens_pop.coef", type = "choro", pal= "Earth")
+mf_title("Coefficients de dens pop")
+
+mf_map(x = data_immo, var = "med_vie.coef", type = "choro", pal= "Earth")
+mf_title("Coefficients de Médianne niveau de vie")
+
+mf_map(x = data_immo, var = "logvac.coef", type = "choro", pal= "Earth")
+mf_title("Coefficients de Logements vacants")
+
+mf_map(x = data_immo, var = "tinylog.coef", type = "choro", pal= "Earth")
+mf_title("Coefficients de Petits logements")
+
+mf_map(x = data_immo, var = "suroccup.coef", type = "choro", pal= "Earth")
+mf_title("Coefficients de logement suroocupés")
+
+mf_map(x = data_immo, var = "cadre.coef", type = "choro", pal= "Earth")
+mf_title("Coefficients de Cadre")
+```
+
+---
+
+## Contribution max
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+data_immo$agri.t <- mod.gwr_g$SDF$part_agri_nb_emploi_TV
+data_immo$maison.t <- mod.gwr_g$SDF$perc_maison_TV
+data_immo$dens.t <- mod.gwr_g$SDF$dens_pop_TV
+data_immo$medvie.t <- mod.gwr_g$SDF$med_niveau_vis_TV
+data_immo$logvac.t <- mod.gwr_g$SDF$perc_log_vac_TV
+data_immo$tinylog.t <- mod.gwr_g$SDF$perc_tiny_log_TV
+data_immo$suroccup.t <- mod.gwr_g$SDF$part_log_suroccup_TV
+data_immo$cadre.t <- mod.gwr_g$SDF$part_cadre_profintellec_nbemploi_TV     
+
+#Définir contrib max
+df<- as.data.frame(data_immo)
+# On passe les t-values en valeurs absolues pour voir la plus grande contribution dans un sens sens ou dans l'autre
+data_immo$contribmax<- colnames(df[, c(30:37)])[max.col(abs(df[, c(30:37)]),ties.method="first")]
+
+
+par(mfrow = c(1, 1))
+
+# Carte
+mf_map(x = data_immo, var = "contribmax", type = "typo", pal= "Zissou 1")
+mf_title("Carte des variables contribuant le plus par epci")
+```
+
+
+
+---
+
+## Cartographier les R2
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+data_immo$r2local=mod.gwr_g$SDF$Local_R2
+
+mf_map(x = data_immo, var = "r2local", type = "choro", pal= "Reds")
+mf_title("R2 Locaux")
+
+```
+
+
+---
+
+## Les t-value et p-value
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+# Pour rappel si on a plus de 200 individus et le t-value > |1.96| on pourra considérer le coefficient comme significatif au seuil de 0.05 (95% chances que ce ne soit pas dû au hasard)
+
+data_immo$nbsignif_t<- rowSums(abs(df[, c(30:37)]) > 1.96)
+
+mf_map(x = data_immo, var = "nbsignif_t", type = "typo", pal= "Reds")
+mf_title("Nombre des Betas significatif par EPCI (t-value)")
+
+```
+
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+#  Les p-value ne sont pas fournit dans le modèle de la GWR, on pourrait les calculer à partir de t-value et de l'erreur standard mais le package GWmodel propose une fonction pour les obttenir
+
+pvalue<-gwr.t.adjust(mod.gwr_g)
+
+# On ajoute les p-value à notre fichier
+data_immo$agri.p <- pvalue$SDF$part_agri_nb_emploi_p 
+data_immo$maison.p <- pvalue$SDF$perc_maison_p
+data_immo$dens.p <- pvalue$SDF$dens_pop_p
+data_immo$medvie.p <- pvalue$SDF$med_niveau_vis_p
+data_immo$logvac.p <- pvalue$SDF$perc_log_vac_p
+data_immo$tinylog.p <- pvalue$SDF$perc_tiny_log_p
+data_immo$suroccup.p <- pvalue$SDF$part_log_suroccup_p
+data_immo$cadre.p <- pvalue$SDF$part_cadre_profintellec_nbemploi_p
+
+df<- as.data.frame(data_immo)
+data_immo$nbsignif_p<- rowSums(df[, c(41:48)] < 0.05)
+
+mf_map(x = data_immo, var = "nbsignif_p", type = "typo", pal= "Reds")
+
+```
+
+
+---
+
+## P-value par variable
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+
+
+# Ici nous représenterons les p-value avec un decoupage par classe de significativité et seulement les p-value de 2 VI
+
+par(mfrow = c(1, 2))
+
+# Par exemple les p-value des coefficients de la variable part de l'emploi agriculteur
+data_immo<- data_immo %>%  mutate(agri.p_fac = case_when(agri.p <= 0.002 ~ "[0;0.002[",
+                           agri.p <= 0.01 ~ "[0.002;0.01[",
+                           agri.p <= 0.05 ~ "[0.01;0.05[",
+                           agri.p <= 0.1 ~ "[0.05;0.1[",
+                           TRUE ~ "[0.1;1]")) %>%
+  mutate(agri.p_fac = factor(agri.p_fac,
+                        levels = c("[0;0.002[", "[0.002;0.01[",
+                                   "[0.01;0.05[",
+                                  "[0.05;0.1[", "[0.1;1]")))
+
+mypal2 <- mf_get_pal(n = 5, palette = "SunsetDark")
+
+mf_map(x = data_immo, 
+       var = "agri.p_fac", 
+       type = "typo", 
+       border = "grey3", 
+       lwd = 0.1, 
+       pal=mypal2, 
+       leg_title = "Classe P-value")
+mf_title("P-value du coefficient de la part d'emploi agriculteurs")
+
+# Pour la densité de population
+data_immo<- data_immo %>%  mutate(dens.p_fac = case_when(dens.p<= 0.002 ~ "[0;0.002[",
+                           dens.p <= 0.01 ~ "[0.002;0.01[",
+                           dens.p <= 0.05 ~ "[0.01;0.05[",
+                           dens.p <= 0.1 ~ "[0.05;0.1[",
+                           TRUE ~ "[0.1;1]")) %>%
+  mutate(dens.p_fac = factor(dens.p_fac,
+                        levels = c("[0;0.002[", "[0.002;0.01[",
+                                   "[0.01;0.05[",
+                                  "[0.05;0.1[", "[0.1;1]")))
+
+mf_map(x = data_immo, 
+       var = "dens.p_fac", 
+       type = "typo", 
+       border = "grey3", 
+       lwd = 0.1, 
+       pal=mypal2, 
+       leg_title = "Classe P-value")
+mf_title("P-value du coefficient de la densité de population")
+```
 
 # VIII. Extensions de la GWR
 
