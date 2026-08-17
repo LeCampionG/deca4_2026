@@ -6,8 +6,8 @@
 ## Présentation
 
 <!-- TODO: -->
-Cet atelier propose une initiation à la statistique spatiale avec R, pour apprendre à analyser des données en tenant compte des effets liés à la dimension spatiale et géographique des données. Nous réaliserons un tour d’horizon des différents modèles et insisterons davantage sur ceux permettant d’étudier l’hétérogénéité spatiale des phénomènes étudiés ou comment des effets peuvent varier en fonction des lieux !
-Cette réflexion sera également l’occasion d’une introduction à la cartographie avec R (package mapsf) mais également avec le logiciel « clique-bouton » en ligne Magrit (<https://magrit.cnrs.fr/>) pour représenter nos résultats.
+Cet atelier propose une première initiation à la statistique spatiale avec R, pour commencer à appréhender dans l'analyse les effets liés à la dimension spatiale et géographique des données. Nous réaliserons un tour d’horizon des différents modèles et insisterons davantage sur ceux permettant d’étudier l’hétérogénéité spatiale des phénomènes étudiés ou comment des effets peuvent varier en fonction des lieux !
+Cette réflexion sera également l’occasion d’une introduction à la cartographie avec R (package mapsf) mais également avec les logiciels « clique-bouton » Magrit (<https://magrit.cnrs.fr/>) (en ligne) et Géoda (<https://geodacenter.github.io/>) pour représenter nos résultats.
 
 ## Contenu et validation :
 
